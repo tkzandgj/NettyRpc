@@ -26,6 +26,12 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
         this.handlerMap = handlerMap;
     }
 
+    /**
+     * 读取服务端发送的消息
+     * @param ctx
+     * @param request
+     * @throws Exception
+     */
     @Override
     public void channelRead0(final ChannelHandlerContext ctx,final RpcRequest request) throws Exception {
         RpcServer.submit(new Runnable() {
@@ -41,6 +47,7 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
                     response.setError(t.toString());
                     LOGGER.error("RPC Server handle request error",t);
                 }
+                // 返回调用产生的结果数据
                 ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture channelFuture) throws Exception {
@@ -55,6 +62,7 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
         String className = request.getClassName();
         Object serviceBean = handlerMap.get(className);
 
+        // 获取对应的请求参数
         Class<?> serviceClass = serviceBean.getClass();
         String methodName = request.getMethodName();
         Class<?>[] parameterTypes = request.getParameterTypes();
