@@ -30,28 +30,51 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
         return remotePeer;
     }
 
+    /**
+     * Channel处于活动状态（已经连接到它的远程节点）。它现在可以接受和发送数据了
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
         this.remotePeer = this.channel.remoteAddress();
     }
 
+    /**
+     * Channel已经被注册到了EventLoop
+     * @param ctx
+     * @throws Exception
+     */
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
         super.channelRegistered(ctx);
         this.channel = ctx.channel();
     }
 
+    /**
+     * 当从Channel中读取数据的时候调用
+     * @param ctx
+     * @param response
+     * @throws Exception
+     */
     @Override
     public void channelRead0(ChannelHandlerContext ctx, RpcResponse response) throws Exception {
         String requestId = response.getRequestId();
         RPCFuture rpcFuture = pendingRPC.get(requestId);
         if (rpcFuture != null) {
+            // 表示已经完成了一个调用，删除保存的requestId
             pendingRPC.remove(requestId);
             rpcFuture.done(response);
         }
     }
 
+    /**
+     * 当处理过程中在ChannelPipeline中有错误产生的时候被调用
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LOGGER.error("client caught exception", cause);
@@ -71,9 +94,12 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
         channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) {
+                // 有一个调用的时候，latch就会减一，直到最后为0
                 latch.countDown();
             }
         });
+
+        // 等待所有的调用完成
         try {
             latch.await();
         } catch (InterruptedException e) {
