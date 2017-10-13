@@ -44,6 +44,10 @@ public class ConnectManage {
     private ConnectManage() {
     }
 
+    /**
+     * 单例模式获取ConnectManage的实例
+     * @return
+     */
     public static ConnectManage getInstance() {
         if (connectManage == null) {
             synchronized (ConnectManage.class) {
@@ -103,7 +107,12 @@ public class ConnectManage {
         }
     }
 
-    public void  reconnect(final RpcClientHandler handler, final SocketAddress remotePeer){
+    /**
+     * 客户端重新去连接服务端
+     * @param handler
+     * @param remotePeer
+     */
+    public void reconnect(final RpcClientHandler handler, final SocketAddress remotePeer){
         if(handler!=null){
             connectedHandlers.remove(handler);
             connectedServerNodes.remove(handler.getRemotePeer());
@@ -111,6 +120,10 @@ public class ConnectManage {
         connectServerNode((InetSocketAddress)remotePeer);
     }
 
+    /**
+     * 开启一个固定大小的线程去连接服务端
+     * @param remotePeer
+     */
     private void connectServerNode(final InetSocketAddress remotePeer) {
         threadPoolExecutor.submit(new Runnable() {
             @Override
@@ -128,6 +141,8 @@ public class ConnectManage {
                             LOGGER.debug("Successfully connect to remote server. remote peer = " + remotePeer);
                             RpcClientHandler handler = channelFuture.channel().pipeline().get(RpcClientHandler.class);
                             addHandler(handler);
+                        } else {
+                            LOGGER.debug("Connect server failed!!!");
                         }
                     }
                 });
@@ -160,6 +175,10 @@ public class ConnectManage {
         }
     }
 
+    /**
+     * 随机选择一个Handler
+     * @return
+     */
     public RpcClientHandler chooseHandler() {
         CopyOnWriteArrayList<RpcClientHandler> handlers = (CopyOnWriteArrayList<RpcClientHandler>) this.connectedHandlers.clone();
         int size = handlers.size();
