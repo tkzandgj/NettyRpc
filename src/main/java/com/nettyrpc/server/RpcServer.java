@@ -72,6 +72,9 @@ public class RpcServer implements ApplicationContextAware, InitializingBean {
                         @Override
                         public void initChannel(SocketChannel channel) throws Exception {
                             channel.pipeline()
+                                    /**
+                                     * 根据编码进帧头部中的长度值提取帧；该字段的偏移量以及长度在构造函数中指定
+                                     */
                                     .addLast(new LengthFieldBasedFrameDecoder(65536,0,4,0,0))
                                     .addLast(new RpcDecoder(RpcRequest.class))
                                     .addLast(new RpcEncoder(RpcResponse.class))
