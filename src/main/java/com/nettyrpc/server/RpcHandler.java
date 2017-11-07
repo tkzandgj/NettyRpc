@@ -34,6 +34,9 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
      */
     @Override
     public void channelRead0(final ChannelHandlerContext ctx,final RpcRequest request) throws Exception {
+        /**
+         * 单独开启一个线程池去处理比较耗时的业务
+         */
         RpcServer.submit(new Runnable() {
             @Override
             public void run() {
@@ -47,7 +50,7 @@ public class RpcHandler extends SimpleChannelInboundHandler<RpcRequest> {
                     response.setError(t.toString());
                     LOGGER.error("RPC Server handle request error",t);
                 }
-                // 返回调用产生的结果数据
+                // 返回调用产生的结果数据   做一个回调   日志打印出请求的Id（requestId）
                 ctx.writeAndFlush(response).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture channelFuture) throws Exception {
