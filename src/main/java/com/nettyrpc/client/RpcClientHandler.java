@@ -54,6 +54,7 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
     /**
      * 当从Channel中读取数据的时候调用
+     * 读取服务端返回的消息
      * @param ctx
      * @param response
      * @throws Exception
@@ -85,6 +86,11 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
         channel.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
     }
 
+    /**
+     * 发送异步请求
+     * @param request
+     * @return
+     */
     public RPCFuture sendRequest(RpcRequest request) {
         final CountDownLatch latch = new CountDownLatch(1);
         RPCFuture rpcFuture = new RPCFuture(request);
