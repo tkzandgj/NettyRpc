@@ -72,6 +72,10 @@ public class ServiceDiscovery {
         return zk;
     }
 
+    /**
+     * 监控服务节点
+     * @param zk
+     */
     private void watchNode(final ZooKeeper zk) {
         try {
             List<String> nodeList = zk.getChildren(Constant.ZK_REGISTRY_PATH, new Watcher() {
